@@ -1,0 +1,14 @@
+.git
+.gitignore
+.github
+.idea
+.vscode
+.DS_Store
+build
+data
+upload
+docs
+*.db
+*.db-journal
+node_modules
+README.md

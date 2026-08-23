@@ -82,13 +82,40 @@ go run .
 
 ## Docker 部署
 
+镜像采用多阶段构建（`alpine` 运行时，静态编译，单文件约 10MB），数据持久化在 `/data` 目录。
+
+**方式一：docker compose（推荐）**
+
 ```bash
-docker run -d --restart always -p 3000:3000 -e TZ=Asia/Shanghai \
-  -v /home/ubuntu/data/go-file:/data \
-  go-file:latest
+cp .env.example .env        # 修改 .env 中的 SESSION_SECRET 为随机字符串
+docker compose up -d --build
 ```
 
-数据将保存在宿主机的 `/home/ubuntu/data/go-file` 目录。
+访问 `http://localhost:3000`，数据库（`go-file.db`）与上传文件（`upload/`）保存在宿主机的 `./data` 目录。
+
+**方式二：docker run**
+
+```bash
+docker build -t go-file:v0.0.1 .
+docker run -d --restart always \
+  -p 3000:3000 \
+  -e TZ=Asia/Shanghai \
+  -e SESSION_SECRET=your-random-secret \
+  -v /home/ubuntu/data/go-file:/data \
+  go-file:v0.0.1
+```
+
+**常用环境变量：**
+
+| 环境变量 | 说明 | 默认值 |
+| --- | --- | --- |
+| `PORT` | 容器内监听端口 | `3000` |
+| `SESSION_SECRET` | 会话密钥（务必设置随机值） | 随机生成 |
+| `TZ` | 时区 | `Asia/Shanghai` |
+| `UPLOAD_PATH` | 上传文件路径 | `/data/upload` |
+| `SQLITE_PATH` | SQLite 数据库路径 | `/data/go-file.db` |
+| `SQL_DSN` | MySQL 连接串（启用 MySQL） | 空 |
+| `REDIS_CONN_STRING` | Redis 连接串（启用限流/统计） | 空 |
 
 ## 与原项目的兼容性
 

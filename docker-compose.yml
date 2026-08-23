@@ -1,0 +1,23 @@
+services:
+  go-file:
+    build:
+      context: .
+      args:
+        VERSION: ${VERSION:-v0.0.1}
+    image: go-file:${VERSION:-v0.0.1}
+    container_name: go-file
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      # 固定会话密钥，避免容器重启后需要重新登录；务必改成随机字符串
+      SESSION_SECRET: ${SESSION_SECRET:-please-change-me}
+      # 以下按需开启：
+      # UPLOAD_PATH: /data/upload
+      # SQLITE_PATH: /data/go-file.db
+      # SQL_DSN: root:123456@tcp(mysql:3306)/gofile
+      # REDIS_CONN_STRING: redis://default:redispw@redis:6379
+    volumes:
+      # 数据库与上传文件都会持久化到宿主机的 ./data 目录
+      - ./data:/data

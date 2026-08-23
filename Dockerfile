@@ -1,26 +1,41 @@
-# Build stage
-FROM golang AS builder
+# ---------- Build stage ----------
+FROM golang:1.24-alpine AS builder
+
 ENV GO111MODULE=on \
     CGO_ENABLED=1 \
-    GOOS=linux \
-    GOARCH=amd64 \
-    GOPROXY=https://goproxy.cn
+    GOPROXY=https://goproxy.cn,direct \
+    CGO_CFLAGS="-D_LARGEFILE64_SOURCE=1"
+
+RUN apk add --no-cache gcc musl-dev
 
 WORKDIR /build
-COPY . .
+
+# Cache dependencies first
+COPY go.mod go.sum ./
 RUN go mod download
-RUN go build -ldflags "-s -w -X 'go-file/common.Version=$(cat VERSION)' -extldflags '-static'" -o go-file
 
-# Final stage
-FROM alpine
+COPY . .
 
-RUN apk update \
-    && apk upgrade \
-    && apk add --no-cache ca-certificates tzdata \
-    && update-ca-certificates 2>/dev/null || true
+ARG VERSION=v0.0.1
+RUN go build -trimpath \
+    -ldflags "-s -w -X 'go-file/common.Version=${VERSION}' -extldflags '-static'" \
+    -o go-file .
 
-ENV PORT=3000
-COPY --from=builder /build/go-file /
+# ---------- Runtime stage ----------
+FROM alpine:3.20
+
+RUN apk add --no-cache ca-certificates tzdata
+
+ENV TZ=Asia/Shanghai \
+    PORT=3000
+
+COPY --from=builder /build/go-file /usr/local/bin/go-file
+
+# 数据目录：数据库（go-file.db）与上传文件（upload/）均保存在此
 WORKDIR /data
+VOLUME ["/data"]
+
 EXPOSE 3000
-ENTRYPOINT ["/go-file"]
+
+ENTRYPOINT ["/usr/local/bin/go-file"]
+CMD ["--no-browser"]
