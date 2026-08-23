@@ -2,22 +2,17 @@
 <html lang="en">
 {{template "header" .}}
 <body>
-<div>
-    {{template "nav" .}}
+{{template "nav" .}}
+<div class="page-shell">
     <div class="container">
-        <div class="normal-container">
-            <article id="messageToast" class="message is-danger">
-                <div class="message-body" id="messageToastText">
-                    {{.message}}
-                </div>
-            </article>
-            {{template "progress"}}
+        <div class="empty-state" style="margin-top: 60px">
+            <div class="state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+            <h3>出错了</h3>
+            <p>{{.message}}</p>
+            <a class="button is-light" href="/">返回资源库</a>
         </div>
     </div>
-    {{template "footer" .}}
 </div>
-
-{{template "modal"}}
-
+{{template "footer" .}}
 </body>
 </html>

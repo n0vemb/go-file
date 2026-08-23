@@ -1,95 +1,276 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 {{template "header" .}}
 <body>
-<div>
-    {{template "nav" .}}
-    <div class="container">
-        <div class="normal-container">
-            <article id="messageToast" class="message is-danger" style="display: none">
-                <div class="message-body" id="messageToastText">
+{{template "nav" .}}
+<main class="container page-main">
+    <div id="app" v-cloak>
+        <div class="library-header">
+            <h1 class="library-title">资源库
+                <small>文件 / 图片 / 视频 / 音频，一处上传、一处管理</small>
+            </h1>
+            <div class="buttons">
+                <button class="button is-primary" @click="openUpload()">＋ 上传资源</button>
+            </div>
+        </div>
 
-                </div>
-            </article>
-            {{if not .files}}
-            <div class="box">
-                <div class="table-container">
-                    <div class="box">
-                        <article class="media">
-                            <div class="media-content">
-                                <div class="content">
-                                    <div class="page-card-title" style="color: #AAAAAA;" id="imageUploadStatus">
-                                        {{if .isQuery}}
-                                        无匹配文件
-                                        {{else}}
-                                        当前无任何文件，请点击 <a class="button is-light" onclick="showUploadModal()">上传</a>
-                                        按钮以上传文件.
-                                        {{end}}
-                                    </div>
-                                </div>
+        <div class="filter-bar">
+            <div class="filter-pills">
+                <button class="pill" :class="{'is-active': state.type === 'all'}" @click="setType('all')">
+                    全部 <span class="count">${state.counts.all}</span>
+                </button>
+                <button class="pill" :class="{'is-active': state.type === 'image'}" @click="setType('image')">
+                    图片 <span class="count">${state.counts.image}</span>
+                </button>
+                <button class="pill" :class="{'is-active': state.type === 'video'}" @click="setType('video')">
+                    视频 <span class="count">${state.counts.video}</span>
+                </button>
+                <button class="pill" :class="{'is-active': state.type === 'audio'}" @click="setType('audio')">
+                    音频 <span class="count">${state.counts.audio}</span>
+                </button>
+                <button class="pill" :class="{'is-active': state.type === 'file'}" @click="setType('file')">
+                    文件 <span class="count">${state.counts.file}</span>
+                </button>
+            </div>
+            <div class="tag-chips" v-if="state.tags.length">
+                <span class="chip" :class="{'is-active': state.tag === tag}"
+                      v-for="tag in state.tags" :key="tag" @click="toggleTag(tag)"># ${tag}</span>
+            </div>
+            <div class="filter-spacer"></div>
+            <select class="sort-select" v-model="state.sort" @change="resetAndFetch()">
+                <option value="desc">最新优先</option>
+                <option value="asc">最早优先</option>
+            </select>
+        </div>
+
+        <div v-if="state.query || state.tag" class="message is-success" style="display: flex; align-items: center; justify-content: space-between">
+            <span>
+                共找到 ${state.total} 个结果
+                <template v-if="state.query">（搜索词：<b>${state.query}</b>）</template>
+                <template v-if="state.tag">（标签：<b># ${state.tag}</b>）</template>
+            </span>
+            <button class="button is-small is-light" @click="clearSearch()">清除筛选</button>
+        </div>
+
+        <div v-if="state.loading && !state.list.length" class="skeleton-grid">
+            <div v-for="n in 8" :key="n">
+                <div class="skeleton thumb"></div>
+                <div class="skeleton line" style="margin-top: 12px; width: 80%"></div>
+                <div class="skeleton line" style="margin-top: 8px; width: 50%"></div>
+            </div>
+        </div>
+
+        <div v-else-if="!state.list.length" class="empty-state">
+            <div class="state-icon" v-html="icon('inbox')"></div>
+            <h3>${state.query || state.tag ? '没有匹配的资源' : '资源库还是空的'}</h3>
+            <p>${state.query || state.tag ? '换个关键词或清除筛选试试' : '点击「上传资源」或直接拖拽文件到页面任意位置'}</p>
+            <button class="button is-primary" @click="openUpload()" v-if="!state.query && !state.tag">＋ 上传第一个资源</button>
+            <button class="button is-light" @click="clearSearch()" v-else>清除筛选</button>
+        </div>
+
+        <template v-else>
+            <div class="resource-grid">
+                <div class="resource-card" v-for="(item, index) in state.list" :key="item.id" @click="openPreview(item, index)">
+                    <div class="resource-thumb" :class="item.type + '-thumb'">
+                        <span class="type-badge">${TYPE_LABELS[item.type] || '文件'}</span>
+                        <img v-if="item.type === 'image'" :src="resourceUrl(item)" loading="lazy" alt=""
+                             @error="e => e.target.style.display = 'none'"/>
+                        <template v-else-if="item.type === 'video'">
+                            <span class="thumb-play" v-html="icon('play')"></span>
+                            <span class="type-icon" v-html="icon('video')"></span>
+                        </template>
+                        <template v-else-if="item.type === 'audio'">
+                            <span class="type-icon" v-html="icon('audio')"></span>
+                        </template>
+                        <template v-else>
+                            <span class="type-icon" v-html="icon('file')"></span>
+                        </template>
+                    </div>
+                    <div class="resource-body">
+                        <div class="resource-name" :title="item.filename">${item.filename}</div>
+                        <div class="resource-meta">
+                            <span>${formatSize(item.size)}</span>
+                            <span class="dot"></span>
+                            <span>${item.time}</span>
+                            <span class="dot"></span>
+                            <span>${item.download_counter} 下载</span>
+                        </div>
+                        <div class="resource-tags" v-if="item.tags">
+                            <span class="tag" v-for="t in item.tags.split(',')" :key="t"
+                                  @click.stop="toggleTag(t.trim())"># ${t.trim()}</span>
+                        </div>
+                        <div class="resource-actions" @click.stop>
+                            <button class="icon-btn" title="预览" @click="openPreview(item, index)" v-html="icon('eye')"></button>
+                            <button class="icon-btn" title="复制链接" @click="copyResourceLink(item)" v-html="icon('link')"></button>
+                            <button class="icon-btn" title="二维码" @click="openQR(item)" v-html="icon('qr')"></button>
+                            <div class="actions-right">
+                                <a class="icon-btn" title="下载" :href="resourceUrl(item)" download v-html="icon('download')"></a>
+                                <button class="icon-btn is-danger" title="删除" v-if="canDelete" @click="askDelete(item)" v-html="icon('trash')"></button>
                             </div>
-                        </article>
+                        </div>
                     </div>
                 </div>
             </div>
-            {{end}}
-            {{template "progress"}}
-            <div>
-                {{range $index, $file := .files}}
-                <div class="box file-box" id="file-{{$file.Id}}">
-                    <article class="media">
-                        <div class="media-content">
-                            <div class="content">
-                                <div class="page-card-title">
-                                    <a onclick="displayFile('/upload/{{$file.Link}}')">{{$file.Filename}}</a>
-                                </div>
-                                <span class="tag is-light">{{$file.Uploader}}</span>
-                                <span class="tag is-light">{{$file.Time}}</span>
-                                <span class="tag is-light"
-                                      id="counter-{{$file.Id}}">{{$file.DownloadCounter}} 次下载</span>
-                                <div class="page-card-text">
-                                    {{if $file.Description}}
-                                    {{$file.Description}}
-                                    {{else}}
-                                    无描述信息
-                                    {{end}}
-                                </div>
-                                <div class="actions">
-                                    {{if $.username}}
-                                    <span onclick="deleteFile({{$file.Id}}, '{{$file.Link}}')">
-                                        <img src="/public/icon/delete.svg"/>
-                                    </span>
-                                    {{end}}
-                                    <span onclick="showQRCode('/upload/{{$file.Link}}')">
-                                        <img src="/public/icon/qrcode.svg"/>
-                                    </span>
-                                    <span onclick="copyLink('/upload/{{$file.Link}}')">
-                                        <img src="/public/icon/copy.svg"/>
-                                    </span>
-                                    <a target="_blank" href="/upload/{{$file.Link}}">
-                                        <img src="/public/icon/play.svg"/>
-                                    </a>
-                                    <a download="{{$file.Filename}}" href="/upload/{{$file.Link}}" onclick="updateDownloadCounter('counter-{{$file.Id}}')">
-                                        <img src="/public/icon/download.svg"/>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
-                </div>
-                {{end}}
+            <div class="load-more" v-if="state.hasNext">
+                <button class="button" :class="{'is-loading': state.loading}" @click="loadMore()">
+                    加载更多（已显示 ${state.list.length} / ${state.total}）
+                </button>
             </div>
-            <nav class="pagination is-centered" role="navigation" aria-label="pagination">
-                <a class="pagination-previous shadow" href="/?p={{.prev}}">上一页</a>
-                <a class="pagination-next shadow" href="/?p={{.next}}">下一页</a>
-            </nav>
+        </template>
+
+        <!-- Upload modal -->
+        <div class="modal" :class="{'is-active': upload.open}">
+            <div class="modal-background" @click="upload.open = false"></div>
+            <div class="modal-card">
+                <div class="modal-card-head">
+                    <span>上传资源</span>
+                    <button class="modal-close" @click="upload.open = false" v-html="icon('x')"></button>
+                </div>
+                <div class="modal-card-body">
+                    <div class="upload-zone" :class="{'is-dragging': zoneDragging}"
+                         @click="onZoneClick()" @dragenter.prevent="onZoneDragEnter()"
+                         @dragover.prevent @dragleave.prevent="onZoneDragLeave()" @drop.prevent="onZoneDrop">
+                        <div class="big-icon" v-html="icon('upload')"></div>
+                        <p>拖拽文件到此处，或点击选择</p>
+                        <small>支持多选、直接粘贴截图，上传后自动识别图片 / 视频 / 音频 / 文件</small>
+                        <input type="file" multiple ref="fileInput" style="display: none" @change="onFileInput"/>
+                    </div>
+                    <div class="upload-file-list" v-if="upload.files.length">
+                        <div class="upload-file-item" v-for="(f, i) in upload.files" :key="f.name + f.size">
+                            <span class="file-icon" v-html="icon('file')"></span>
+                            <span class="file-name" :title="f.name">${f.name}</span>
+                            <span class="file-size">${formatSize(f.size)}</span>
+                            <button class="icon-btn is-danger" title="移除" @click="removeFileAt(i)" v-html="icon('x')"></button>
+                        </div>
+                    </div>
+                    <div class="field" style="margin-top: 16px">
+                        <label class="label">描述（可选）</label>
+                        <input class="input" v-model="upload.description" placeholder="给资源加一句说明"/>
+                    </div>
+                    <div class="field">
+                        <label class="label">标签（可选，逗号分隔）</label>
+                        <input class="input" v-model="upload.tagsText" placeholder="例如：工作, 截图, 电影"/>
+                    </div>
+                    <div class="upload-progress-row" v-if="upload.uploading">
+                        <progress class="progress" :value="upload.progress" max="100"></progress>
+                        <div class="help">上传中 ${upload.progress}%</div>
+                    </div>
+                    <div class="upload-result is-err" v-if="upload.failed">${upload.errorMsg}</div>
+                </div>
+                <div class="modal-card-foot">
+                    <button class="button is-light" @click="upload.open = false">关闭</button>
+                    <button class="button is-primary" :disabled="!upload.files.length || upload.uploading"
+                            :class="{'is-loading': upload.uploading}" @click="submitUpload()">
+                        ${upload.uploading ? '上传中' : '开始上传' + (upload.files.length ? '（' + upload.files.length + '）' : '')}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview modal -->
+        <div class="modal preview-modal" :class="{'is-active': preview.open}">
+            <div class="modal-background" @click="preview.open = false"></div>
+            <div class="modal-card">
+                <div class="modal-card-head">
+                    <span style="word-break: break-all; padding-right: 10px">${preview.item ? preview.item.filename : ''}</span>
+                    <button class="modal-close" @click="preview.open = false" v-html="icon('x')"></button>
+                </div>
+                <div class="modal-card-body">
+                    <img v-if="preview.kind === 'image'" :src="preview.item ? resourceUrl(preview.item) : ''"/>
+                    <video v-else-if="preview.kind === 'video'" :src="preview.item ? resourceUrl(preview.item) : ''" controls autoplay></video>
+                    <audio v-else-if="preview.kind === 'audio'" :src="preview.item ? resourceUrl(preview.item) : ''" controls autoplay></audio>
+                    <pre class="preview-text" v-else-if="preview.kind === 'text'">${preview.loadingText ? '加载中...' : preview.text}${preview.textTruncated ? '\n\n（内容过长已截断，请下载查看完整文件）' : ''}</pre>
+                    <div v-else class="preview-file-info">
+                        <div class="state-icon" v-html="icon('file')"></div>
+                        <p>该类型暂不支持在线预览，请下载查看</p>
+                    </div>
+                    <button v-if="preview.kind === 'image' && preview.images.length > 1"
+                            class="lightbox-nav prev" @click.stop="previewImageNav(-1)" v-html="icon('chevronLeft')"></button>
+                    <button v-if="preview.kind === 'image' && preview.images.length > 1"
+                            class="lightbox-nav next" @click.stop="previewImageNav(1)" v-html="icon('chevronRight')"></button>
+                </div>
+                <div class="preview-meta">
+                    <span class="name">${preview.item ? preview.item.filename : ''}</span>
+                    <span class="tag is-light" v-if="preview.item">${formatSize(preview.item.size)}</span>
+                    <span class="tag is-light" v-if="preview.item && preview.item.uploader">${preview.item.uploader}</span>
+                    <span class="tag is-light" v-if="preview.item && preview.item.download_counter">${preview.item.download_counter} 次下载</span>
+                    <div class="actions">
+                        <button class="icon-btn" title="复制链接" @click="preview.item && copyResourceLink(preview.item)" v-html="icon('link')"></button>
+                        <button class="icon-btn" title="二维码" @click="preview.item && openQR(preview.item)" v-html="icon('qr')"></button>
+                        <a class="icon-btn" title="下载" :href="preview.item ? resourceUrl(preview.item) : '#'" download v-html="icon('download')"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- QR modal -->
+        <div class="modal" :class="{'is-active': qr.open}">
+            <div class="modal-background" @click="qr.open = false"></div>
+            <div class="modal-card">
+                <div class="modal-card-head">
+                    <span>扫码访问</span>
+                    <button class="modal-close" @click="qr.open = false" v-html="icon('x')"></button>
+                </div>
+                <div class="modal-card-body qr-body">
+                    <canvas id="qr-canvas"></canvas>
+                    <div class="qr-link">
+                        <input class="input url-input" :value="qr.link" readonly @focus="e => e.target.select()"/>
+                        <button class="button is-light" @click="copyQrLink()">复制</button>
+                    </div>
+                    <p class="help" style="margin-top: 10px">${qr.name}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete confirm -->
+        <div class="modal" :class="{'is-active': del.open}">
+            <div class="modal-background" @click="del.open = false"></div>
+            <div class="modal-card">
+                <div class="modal-card-head">
+                    <span>删除确认</span>
+                    <button class="modal-close" @click="del.open = false" v-html="icon('x')"></button>
+                </div>
+                <div class="modal-card-body">
+                    <p>确定要删除「<b>${del.item ? del.item.filename : ''}</b>」吗？<br/>删除后文件将被移除且无法恢复。</p>
+                </div>
+                <div class="modal-card-foot">
+                    <button class="button is-light" @click="del.open = false">取消</button>
+                    <button class="button is-danger" @click="confirmDelete()">确认删除</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toasts -->
+        <div class="toast-container">
+            <div class="toast" :class="'is-' + (t.type || 'success')" v-for="t in toasts" :key="t.id">
+                <span class="toast-icon" v-html="icon(t.type === 'danger' ? 'alert' : t.type === 'info' ? 'info' : 'check')"></span>
+                <span>${t.msg}</span>
+            </div>
+        </div>
+
+        <!-- Global drop overlay -->
+        <div class="drop-overlay" v-if="dropActive">
+            <div class="drop-box"><span class="state-icon" v-html="icon('inbox')"></span>松开鼠标上传文件</div>
+        </div>
+
+        <!-- Direct upload progress -->
+        <div class="direct-upload" v-if="directUpload.active">
+            <div class="direct-upload-card">
+                <div class="direct-upload-title">正在上传 ${directUpload.total} 个文件...</div>
+                <progress class="progress" :value="directUpload.progress" max="100"></progress>
+                <div class="help">${directUpload.progress}%</div>
+            </div>
         </div>
     </div>
-    {{template "footer" .}}
-</div>
+</main>
+{{template "footer" .}}
 
-{{template "modal"}}
 {{template "notice" .}}
 
+<script>
+    window.__APP_CONFIG__ = {
+        username: "{{.username}}",
+    };
+</script>
 </body>
 </html>

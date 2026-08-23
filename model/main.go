@@ -40,7 +40,9 @@ func InitDB() (db *gorm.DB, err error) {
 		db.AutoMigrate(&Image{})
 		db.AutoMigrate(&User{})
 		db.AutoMigrate(&Option{})
+		db.AutoMigrate(&Resource{})
 		createAdminAccount()
+		ImportLegacyData()
 		return DB, err
 	} else {
 		common.FatalLog("failed to connect to database: " + err.Error())

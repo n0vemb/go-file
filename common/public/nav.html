@@ -2,7 +2,8 @@
 <nav class="navbar nav-shadow" role="navigation" aria-label="main navigation" id="nav">
     <div class="container">
         <div class="navbar-brand">
-            <a class="navbar-item is-size-5" href="/" style="font-weight: bold">
+            <span class="logo-mark">F</span>
+            <a class="navbar-item" href="/">
                 {{.option.WebsiteName}}
             </a>
             <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false"
@@ -10,51 +11,37 @@
                 <span aria-hidden="true"></span>
                 <span aria-hidden="true"></span>
                 <span aria-hidden="true"></span>
-                <span aria-hidden="true"></span>
-                <span aria-hidden="true"></span>
             </a>
         </div>
         <div id="mainNavbar" class="navbar-menu">
             <div class="navbar-start">
-                <a class="navbar-item" href="/"> 首页 </a>
-                <a class="navbar-item" href="/explorer"> 文件 </a>
-                <a class="navbar-item" href="/image"> 图床 </a>
-                <a class="navbar-item" href="/video"> 视频 </a>
-                <a class="navbar-item" href="/help"> 帮助 </a>
+                <a class="navbar-item nav-link" href="/">资源库</a>
+                <a class="navbar-item nav-link" href="/explorer">文件</a>
+                <a class="navbar-item nav-link" href="/help">帮助</a>
             </div>
             <div class="navbar-end">
-                <div class="navbar-item" >
-                    <p class="control is-expanded is-light flex-grow">
-                        <input class="input flex-grow" type="search" id="searchInput" autocomplete="nope"
-                               autofocus="" style="cursor: text;" placeholder="搜索文件..."/>
-                    </p>
-                    <script>
-                        const input = document.getElementById("searchInput");
-                        input.addEventListener("keyup", function (event) {
-                            if (event.key === 'Enter') {
-                                let value = input.value.trim();
-                                value = encodeURIComponent(value);
-                                if (value === "") {
-                                    location.href = "/";
-                                } else {
-                                    location.href = "/?query=" + value;
-                                }
-                            }
-                        });
-                    </script>
+                <div class="navbar-item search-input">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="search" id="searchInput" placeholder="搜索资源..." autocomplete="off"/>
                 </div>
                 <div class="navbar-item">
                     <div class="buttons">
-                        <a class="button is-light" onclick="showUploadModal()">上传</a>
+                        <button class="button is-primary" onclick="showUploadModal()">＋ 上传</button>
                         {{if not $.username}}
                         <a class="button is-light" href="/login">登录</a>
                         {{end}}
                     </div>
                 </div>
+                <button class="theme-toggle" onclick="toggleTheme()" title="切换主题">
+                    <span class="icon-moon" id="iconMoon"></span><span class="icon-sun" id="iconSun"></span>
+                </button>
                 {{if $.username}}
                 <div class="navbar-item has-dropdown is-hoverable">
                     <a class="navbar-link">
-                        {{$.username}}
+                        <span id="navUserIcon"></span> {{$.username}}
                     </a>
                     <div class="navbar-dropdown">
                         <a class="navbar-item" href="/manage">
@@ -74,4 +61,45 @@
         </div>
     </div>
 </nav>
+<script>
+    (function () {
+        if (window.GFIcon) {
+            var moon = document.getElementById('iconMoon');
+            var sun = document.getElementById('iconSun');
+            if (moon) moon.innerHTML = GFIcon('moon');
+            if (sun) sun.innerHTML = GFIcon('sun');
+            var userIcon = document.getElementById('navUserIcon');
+            if (userIcon) userIcon.innerHTML = GFIcon('user');
+        }
+        var burger = document.querySelector('.navbar-burger');
+        if (burger) {
+            burger.addEventListener('click', function () {
+                document.getElementById('mainNavbar').classList.toggle('is-open');
+            });
+        }
+        var path = location.pathname;
+        document.querySelectorAll('.nav-link').forEach(function (a) {
+            var href = a.getAttribute('href');
+            if ((path === '/' && href === '/') || (path !== '/' && href !== '/' && path.startsWith(href))) {
+                a.classList.add('is-active');
+            }
+        });
+        var input = document.getElementById('searchInput');
+        if (input) {
+            input.value = new URLSearchParams(location.search).get('query') || '';
+            input.addEventListener('keyup', function (event) {
+                if (event.key === 'Enter') {
+                    var value = input.value.trim();
+                    if (document.getElementById('app')) {
+                        window.dispatchEvent(new CustomEvent('search-request', { detail: value }));
+                    } else if (value === '') {
+                        location.href = '/';
+                    } else {
+                        location.href = '/?query=' + encodeURIComponent(value);
+                    }
+                }
+            });
+        }
+    })();
+</script>
 {{end}}

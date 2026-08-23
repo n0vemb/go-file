@@ -2,22 +2,17 @@
 <html lang="en">
 {{template "header" .}}
 <body>
-<div>
-    {{template "nav" .}}
+{{template "nav" .}}
+<div class="page-shell">
     <div class="container">
-        <div class="normal-container">
-            <article id="messageToast" class="message is-danger">
-                <div class="message-body" id="messageToastText">
-                    页面不存在或者文件已被删除
-                </div>
-            </article>
-            {{template "progress"}}
+        <div class="empty-state" style="margin-top: 60px">
+            <div class="state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+            <h3>404 - 页面不存在</h3>
+            <p>页面不存在或者文件已被删除</p>
+            <a class="button is-primary" href="/">返回资源库</a>
         </div>
     </div>
-    {{template "footer" .}}
 </div>
-
-{{template "modal"}}
-
+{{template "footer" .}}
 </body>
 </html>

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 {{template "header" .}}
 <body>
-<div>
-    {{template "nav" .}}
+{{template "nav" .}}
+<div class="page-shell">
     <div class="container">
         <div class="normal-container">
             <article id="messageToast" class="message is-danger" style="display: none">
@@ -18,8 +18,16 @@
                         <article class="media">
                             <div class="media-content">
                                 <div class="content">
-                                    <div class="page-card-title" style="color: #368CCB;">Go File {{.option.Version}} 帮助文档</div>
+                                    <div class="page-card-title">Go File {{.option.Version}} 帮助文档</div>
                                     <div class="page-card-text">
+                                        <p>
+                                            Go File {{.option.Version}} 基于
+                                            <a target="_blank" href="https://github.com/songquanpeng/go-file">songquanpeng/go-file</a>
+                                            二次开发，原作者
+                                            <a target="_blank" href="https://github.com/songquanpeng">JustSong</a>，
+                                            由 <a target="_blank" href="https://github.com/n0vemb">n0vem</a> 修改维护，
+                                            项目地址：<a target="_blank" href="https://github.com/n0vemb/go-file">github.com/n0vemb/go-file</a>
+                                        </p>
                                         <h4>基本功能</h4>
                                         <ul>
                                             <li>
@@ -59,8 +67,8 @@
             </div>
         </div>
     </div>
-    {{template "footer" .}}
 </div>
+{{template "footer" .}}
 
 {{template "modal"}}
 

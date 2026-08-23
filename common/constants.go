@@ -13,11 +13,43 @@ import (
 )
 
 var StartTime = time.Now()
-var Version = "v0.0.0"
+var Version = "v0.0.1"
 var OptionMap map[string]string
 
 var ItemsPerPage = 10
+var ResourcesPerPage = 24
 var AbstractTextLength = 40
+
+const (
+	ResourceTypeImage = "image"
+	ResourceTypeVideo = "video"
+	ResourceTypeAudio = "audio"
+	ResourceTypeFile  = "file"
+)
+
+var ImageExtensions = []string{".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".svg", ".ico", ".avif", ".tiff", ".heic"}
+var VideoExtensions = []string{".mp4", ".webm", ".ogg", ".mkv", ".mov", ".avi", ".ts", ".m4v", ".flv", ".wmv", ".mpg", ".mpeg", ".3gp"}
+var AudioExtensions = []string{".mp3", ".wav", ".flac", ".aac", ".m4a", ".wma", ".opus", ".mid", ".midi"}
+
+func GetResourceType(filename string) string {
+	ext := strings.ToLower(filepath.Ext(filename))
+	for _, e := range ImageExtensions {
+		if ext == e {
+			return ResourceTypeImage
+		}
+	}
+	for _, e := range VideoExtensions {
+		if ext == e {
+			return ResourceTypeVideo
+		}
+	}
+	for _, e := range AudioExtensions {
+		if ext == e {
+			return ResourceTypeAudio
+		}
+	}
+	return ResourceTypeFile
+}
 
 var ExplorerCacheEnabled = false // After my test, enable this will make the server slower...
 var ExplorerCacheTimeout = 600   // Second

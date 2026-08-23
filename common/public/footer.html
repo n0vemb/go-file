@@ -1,14 +1,17 @@
 {{define "footer"}}
-    <footer class="footer" style="background-color: white">
-        <div class="content has-text-centered" >
-            {{if .option.FooterInfo}}
-                {{.option.FooterInfo | unescape}}
-            {{else}}
-            <p>
-                <a href="https://github.com/songquanpeng/go-file">Go File {{.option.Version}}</a> 由 <a href="https://github.com/songquanpeng">JustSong</a> 构建，
-                源代码遵循 <a href="http://opensource.org/licenses/mit-license.php">MIT</a> 协议
-            </p>
-            {{end}}
-        </div>
-    </footer>
+<footer class="footer">
+    <div class="container has-text-centered">
+        {{if .option.FooterInfo}}
+        {{.option.FooterInfo | unescape}}
+        {{else}}
+        <p>
+            <a href="https://github.com/n0vemb/go-file">Go File {{.option.Version}}</a> 由
+            <a href="https://github.com/n0vemb">n0vem</a> 修改维护，
+            原作者 <a href="https://github.com/songquanpeng">JustSong</a>，原项目
+            <a href="https://github.com/songquanpeng/go-file">songquanpeng/go-file</a>，
+            源代码遵循 <a href="http://opensource.org/licenses/mit-license.php">MIT</a> 协议
+        </p>
+        {{end}}
+    </div>
+</footer>
 {{end}}

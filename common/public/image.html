@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 {{template "header" .}}
 <body>
-<div>
-    {{template "nav" .}}
+{{template "nav" .}}
+<div class="page-shell">
     <div class="container" ondrop="imageDropHandler(event);" ondragover="imageDragOverHandler(event);">
         <div class="normal-container">
             <article id="messageToast" class="message is-danger" style="display: none">
@@ -55,8 +55,8 @@
             </div>
         </div>
     </div>
-    {{template "footer" .}}
 </div>
+{{template "footer" .}}
 
 {{template "modal"}}
 {{template "notice" .}}

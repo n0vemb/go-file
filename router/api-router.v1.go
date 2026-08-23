@@ -11,12 +11,15 @@ func setApiRouter(router *gin.Engine) {
 	router.GET("/status", controller.GetStatus)
 	router.POST("/api/file", middleware.FileUploadPermissionCheck(), controller.UploadFile)
 	router.POST("/api/image", middleware.ImageUploadPermissionCheck(), controller.UploadImage)
+	router.POST("/api/resource", middleware.FileUploadPermissionCheck(), controller.UploadResource)
+	router.GET("/api/resources", controller.GetResources)
 	router.GET("/api/notice", controller.GetNotice)
 	basicAuth := router.Group("/api")
 	basicAuth.Use(middleware.ApiAuth())
 	{
 		basicAuth.DELETE("/file", controller.DeleteFile)
 		basicAuth.DELETE("/image", controller.DeleteImage)
+		basicAuth.DELETE("/resource", controller.DeleteResource)
 		basicAuth.PUT("/user", middleware.NoTokenAuth(), controller.UpdateSelf)
 		basicAuth.POST("/token", controller.GenerateNewUserToken)
 	}
