@@ -3,11 +3,8 @@ name: Build and push Docker image
 on:
   push:
     branches: [master]
-    paths:
-      - "Dockerfile"
-      - ".github/workflows/docker-build.yml"
-      - "go.mod"
-      - "go.sum"
+    tags:
+      - "v*"
   workflow_dispatch:
 
 jobs:
