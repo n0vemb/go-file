@@ -8,6 +8,9 @@ ENV GO111MODULE=on \
 
 RUN apk add --no-cache gcc musl-dev
 
+# apk 走直连，不走构建器代理（socks5 代理下 apk 不可用）
+ENV http_proxy= https_proxy= HTTP_PROXY= HTTPS_PROXY=
+
 WORKDIR /build
 
 # Cache dependencies first
@@ -25,6 +28,9 @@ RUN go build -trimpath \
 FROM alpine:3.20
 
 RUN apk add --no-cache ca-certificates tzdata
+
+# 运行阶段无需代理
+ENV http_proxy= https_proxy= HTTP_PROXY= HTTPS_PROXY=
 
 ENV TZ=Asia/Shanghai \
     PORT=3000

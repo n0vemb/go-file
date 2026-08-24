@@ -1,0 +1,44 @@
+name: Build and push Docker image
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "Dockerfile"
+      - ".github/workflows/docker-build.yml"
+      - "go.mod"
+      - "go.sum"
+  workflow_dispatch:
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          build-args: |
+            VERSION=${{ github.ref_type == 'tag' && github.ref_name || 'v0.0.1' }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/go-file:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/go-file:${{ github.ref_type == 'tag' && github.ref_name || 'v0.0.1' }}

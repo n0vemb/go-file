@@ -105,6 +105,19 @@ docker run -d --restart always \
   go-file:v0.0.1
 ```
 
+**方式三：从 Docker Hub 拉取（多架构镜像由 GitHub Actions 自动构建）**
+
+```bash
+docker pull n0vem/go-file:v0.0.1
+docker run -d --restart always -p 3000:3000 \
+  -e SESSION_SECRET=your-random-secret \
+  -v /home/ubuntu/data/go-file:/data \
+  n0vem/go-file:v0.0.1
+```
+
+> GitHub Actions 会在推送到 `master` 时自动构建并推送 `linux/amd64` 与 `linux/arm64` 双架构镜像。
+> 首次运行前需在仓库 Settings → Secrets and variables → Actions 中配置 `DOCKERHUB_USERNAME` 和 `DOCKERHUB_TOKEN`。
+
 **常用环境变量：**
 
 | 环境变量 | 说明 | 默认值 |
