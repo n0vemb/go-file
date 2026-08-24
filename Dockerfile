@@ -37,6 +37,10 @@ ENV TZ=Asia/Shanghai \
 
 COPY --from=builder /build/go-file /usr/local/bin/go-file
 
+LABEL org.opencontainers.image.source="https://github.com/n0vemb/go-file" \
+      org.opencontainers.image.title="Go File" \
+      org.opencontainers.image.description="Unified file/image/video sharing, fork of songquanpeng/go-file"
+
 # 数据目录：数据库（go-file.db）与上传文件（upload/）均保存在此
 WORKDIR /data
 VOLUME ["/data"]
