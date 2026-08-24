@@ -118,6 +118,21 @@ docker run -d --restart always -p 3000:3000 \
 > GitHub Actions 会在推送到 `master` 时自动构建并推送 `linux/amd64` 与 `linux/arm64` 双架构镜像。
 > 首次运行前需在仓库 Settings → Secrets and variables → Actions 中配置 `DOCKERHUB_USERNAME` 和 `DOCKERHUB_TOKEN`。
 
+**NAS / 镜像源不支持多架构 manifest 时**：显式指定平台，或直接使用单架构标签 `amd64` / `arm64`。
+
+```yaml
+services:
+  gofile:
+    image: n0vem/go-file:amd64        # 或 n0vem/go-file:latest 加下方 platform
+    container_name: gofile
+    restart: always
+    platform: linux/amd64             # 强制选择 amd64 变体
+    ports:
+      - "8909:3000"
+    volumes:
+      - /vol1/1000/docker/upload/files:/data
+```
+
 **常用环境变量：**
 
 | 环境变量 | 说明 | 默认值 |
