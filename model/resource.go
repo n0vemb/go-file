@@ -142,6 +142,11 @@ func ImportLegacyData() {
 		if f.Link == "" {
 			continue
 		}
+		// 文件已不存在：清理孤儿记录，避免每次启动重新导入成空资源
+		if _, err := os.Stat(filepath.Join(common.UploadPath, f.Link)); err != nil {
+			DB.Where("id = ?", f.Id).Delete(&File{})
+			continue
+		}
 		var count int
 		DB.Model(&Resource{}).Where("link = ?", f.Link).Count(&count)
 		if count > 0 {
@@ -166,6 +171,11 @@ func ImportLegacyData() {
 	DB.Find(&images)
 	for _, im := range images {
 		link := "images/" + im.Filename
+		// 文件已不存在：清理孤儿记录，避免每次启动重新导入成空资源
+		if _, err := os.Stat(filepath.Join(common.UploadPath, link)); err != nil {
+			DB.Where("filename = ?", im.Filename).Delete(&Image{})
+			continue
+		}
 		var count int
 		DB.Model(&Resource{}).Where("link = ?", link).Count(&count)
 		if count > 0 {
@@ -183,5 +193,16 @@ func ImportLegacyData() {
 			Size:     size,
 			Time:     im.Time,
 		})
+	}
+}
+
+// CleanupMissingResources removes resource rows whose underlying files are gone.
+func CleanupMissingResources() {
+	var resources []*Resource
+	DB.Find(&resources)
+	for _, r := range resources {
+		if _, err := os.Stat(filepath.Join(common.UploadPath, r.Link)); err != nil {
+			DB.Where("id = ?", r.Id).Delete(&Resource{})
+		}
 	}
 }

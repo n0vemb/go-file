@@ -187,6 +187,7 @@ func DeleteResource(c *gin.Context) {
 		})
 		return
 	}
+	deleteLegacyRows(resource.Link)
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "资源删除成功",
@@ -220,6 +221,7 @@ func DeleteResourcesBatch(c *gin.Context) {
 		if err := resource.Delete(); err != nil {
 			continue
 		}
+		deleteLegacyRows(item.Link)
 		deleted++
 	}
 	c.JSON(http.StatusOK, gin.H{
@@ -227,6 +229,18 @@ func DeleteResourcesBatch(c *gin.Context) {
 		"message": fmt.Sprintf("已删除 %d 个资源", deleted),
 		"deleted": deleted,
 	})
+}
+
+// deleteLegacyRows removes the matching old files/images record so that the
+// resource won't be re-imported on the next startup.
+func deleteLegacyRows(link string) {
+	if link == "" {
+		return
+	}
+	model.DB.Where("link = ?", link).Delete(&model.File{})
+	if strings.HasPrefix(link, "images/") {
+		model.DB.Where("filename = ?", strings.TrimPrefix(link, "images/")).Delete(&model.Image{})
+	}
 }
 
 func DownloadResource(c *gin.Context) {

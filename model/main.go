@@ -43,6 +43,7 @@ func InitDB() (db *gorm.DB, err error) {
 		db.AutoMigrate(&Resource{})
 		createAdminAccount()
 		ImportLegacyData()
+		CleanupMissingResources()
 		return DB, err
 	} else {
 		common.FatalLog("failed to connect to database: " + err.Error())
