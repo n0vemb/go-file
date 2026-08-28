@@ -13,7 +13,7 @@ import (
 )
 
 var StartTime = time.Now()
-var Version = "v0.0.1"
+var Version = "v0.0.2"
 var OptionMap map[string]string
 
 var ItemsPerPage = 10

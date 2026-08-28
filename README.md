@@ -15,7 +15,7 @@ _✨ 单可执行文件的局域网文件分享工具，将「文件 / 图床 / 
     <img src="https://img.shields.io/github/license/n0vemb/go-file?color=brightgreen" alt="license">
   </a>
   <a href="https://github.com/n0vemb/go-file">
-    <img src="https://img.shields.io/badge/version-v0.0.1-brightgreen" alt="version">
+    <img src="https://img.shields.io/badge/version-v0.0.2-brightgreen" alt="version">
   </a>
   <a href="#截图展示">
     <img src="https://img.shields.io/badge/UI-重构版-5b5bd6" alt="UI">
@@ -23,7 +23,7 @@ _✨ 单可执行文件的局域网文件分享工具，将「文件 / 图床 / 
 </p>
 
 > **二次开发说明**：本项目基于 [songquanpeng/go-file](https://github.com/songquanpeng/go-file) 二次开发，重构了 UI 与交互，
-> 将文件、图床、视频整合为统一的「资源库」。修改者：**n0vem**，当前版本 **v0.0.1**，
+> 将文件、图床、视频整合为统一的「资源库」。修改者：**n0vem**，当前版本 **v0.0.2**，
 > 仓库地址：[https://github.com/n0vemb/go-file](https://github.com/n0vemb/go-file)。
 > 原项目作者：JustSong（[songquanpeng/go-file](https://github.com/songquanpeng/go-file)）。
 
@@ -33,11 +33,12 @@ _✨ 单可执行文件的局域网文件分享工具，将「文件 / 图床 / 
 2. **全新 UI**：基于内嵌 Vue 3 的自研设计系统，网格卡片布局，支持**亮 / 暗双主题**。
 3. **多样化预览**：图片灯箱（左右切换、键盘操作）、视频 / 音频内嵌播放、文本在线预览。
 4. **灵活的筛选**：按类型（全部 / 图片 / 视频 / 音频 / 文件）筛选、标签筛选、关键词搜索、排序、加载更多。
-5. **便捷上传**：全局拖拽上传（跳过弹窗）、粘贴截图上传、多文件批量上传、上传进度提示。
-6. **分享能力**：二维码扫码访问、一键复制链接、下载计数。
-7. **零构建、单二进制**：前端资源全部 `go:embed` 内嵌，双击即可运行，开箱即用。
-8. 兼容原项目：支持分享本地文件夹（`--path`）、本地视频目录（`--video`）、图片上传 API（PicGo / Typora 可用）、Token API、访问权限与频率限制。
-9. Docker 一键部署。
+5. **批量管理**：管理员可框选多个文件，批量删除。
+6. **便捷上传**：全局拖拽上传（跳过弹窗）、粘贴截图上传、多文件批量上传、上传进度提示。
+7. **分享能力**：二维码扫码访问、一键复制链接、下载计数。
+8. **零构建、单二进制**：前端资源全部 `go:embed` 内嵌，双击即可运行，开箱即用。
+9. 兼容原项目：支持分享本地文件夹（`--path`）、本地视频目录（`--video`）、图片上传 API（PicGo / Typora 可用）、Token API、访问权限与频率限制。
+10. Docker 一键部署。
 
 ## 截图展示
 
@@ -96,23 +97,23 @@ docker compose up -d --build
 **方式二：docker run**
 
 ```bash
-docker build -t go-file:v0.0.1 .
+docker build -t go-file:v0.0.2 .
 docker run -d --restart always \
   -p 3000:3000 \
   -e TZ=Asia/Shanghai \
   -e SESSION_SECRET=your-random-secret \
   -v /home/ubuntu/data/go-file:/data \
-  go-file:v0.0.1
+  go-file:v0.0.2
 ```
 
 **方式三：从 Docker Hub 拉取（多架构镜像由 GitHub Actions 自动构建）**
 
 ```bash
-docker pull n0vem/go-file:v0.0.1
+docker pull n0vem/go-file:v0.0.2
 docker run -d --restart always -p 3000:3000 \
   -e SESSION_SECRET=your-random-secret \
   -v /home/ubuntu/data/go-file:/data \
-  n0vem/go-file:v0.0.1
+  n0vem/go-file:v0.0.2
 ```
 
 > GitHub Actions 会在推送到 `master` 时自动构建并推送 `linux/amd64` 与 `linux/arm64` 双架构镜像。

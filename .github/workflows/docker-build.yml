@@ -35,10 +35,10 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
-            VERSION=${{ github.ref_type == 'tag' && github.ref_name || 'v0.0.1' }}
+            VERSION=${{ github.ref_type == 'tag' && github.ref_name || 'v0.0.2' }}
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/go-file:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/go-file:${{ github.ref_type == 'tag' && github.ref_name || 'v0.0.1' }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/go-file:${{ github.ref_type == 'tag' && github.ref_name || 'v0.0.2' }}
 
       # 同步单架构标签，便于在镜像源/旧客户端不支持 manifest list 的机器上直接拉取
       - name: Push per-arch tags

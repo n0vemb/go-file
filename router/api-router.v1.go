@@ -20,6 +20,7 @@ func setApiRouter(router *gin.Engine) {
 		basicAuth.DELETE("/file", controller.DeleteFile)
 		basicAuth.DELETE("/image", controller.DeleteImage)
 		basicAuth.DELETE("/resource", controller.DeleteResource)
+		basicAuth.DELETE("/resources", controller.DeleteResourcesBatch)
 		basicAuth.PUT("/user", middleware.NoTokenAuth(), controller.UpdateSelf)
 		basicAuth.POST("/token", controller.GenerateNewUserToken)
 	}

@@ -3,8 +3,8 @@ services:
     build:
       context: .
       args:
-        VERSION: ${VERSION:-v0.0.1}
-    image: go-file:${VERSION:-v0.0.1}
+        VERSION: ${VERSION:-v0.0.2}
+    image: go-file:${VERSION:-v0.0.2}
     container_name: go-file
     restart: unless-stopped
     ports:

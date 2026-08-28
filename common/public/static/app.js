@@ -1,7 +1,7 @@
 /* Go File - unified resource library (Vue 3, no build step) */
 (function () {
     if (!window.Vue) return;
-    const { createApp, ref, reactive, onMounted, onBeforeUnmount } = Vue;
+    const { createApp, ref, reactive, computed, onMounted, onBeforeUnmount } = Vue;
 
     const PAGE_SIZE = 24;
     const TYPE_LABELS = {
@@ -143,7 +143,9 @@
                 });
 
                 const qr = reactive({ open: false, link: '', name: '' });
-                const del = reactive({ open: false, item: null });
+                const del = reactive({ open: false, item: null, items: [], mode: 'single' });
+                const selectedIds = reactive({});
+                const selectionBox = reactive({ active: false, x1: 0, y1: 0, x2: 0, y2: 0 });
                 const directUpload = reactive({ active: false, total: 0, progress: 0, count: 0 });
                 const dropActive = ref(false);
                 const dragDepth = ref(0);
@@ -169,7 +171,7 @@
                     if (state.query) params.set('query', state.query);
                     if (state.tag) params.set('tag', state.tag);
                     params.set('sort', state.sort);
-                    if (append) params.set('p', state.page);
+                    if (append) params.set('p', state.page + 1);
                     params.set('page_size', PAGE_SIZE);
                     try {
                         const res = await fetch('/api/resources?' + params.toString());
@@ -192,6 +194,7 @@
                 function resetAndFetch() {
                     state.page = 0;
                     state.list = [];
+                    clearSelection();
                     fetchList(false);
                 }
 
@@ -449,31 +452,173 @@
                 }
 
                 function askDelete(item) {
+                    del.mode = 'single';
                     del.item = item;
+                    del.items = [item];
+                    del.open = true;
+                }
+
+                function askBatchDelete() {
+                    const items = state.list.filter(function (x) { return !!selectedIds[x.id]; });
+                    if (!items.length) return;
+                    del.mode = 'batch';
+                    del.item = null;
+                    del.items = items;
                     del.open = true;
                 }
 
                 async function confirmDelete() {
-                    const item = del.item;
-                    if (!item) return;
+                    const items = del.items || [];
+                    if (!items.length) {
+                        del.open = false;
+                        return;
+                    }
                     try {
-                        const res = await fetch('/api/resource', {
-                            method: 'DELETE',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ id: item.id, link: item.link }),
-                        });
-                        const data = await res.json();
-                        if (data.success) {
-                            toast('已删除「' + item.filename + '」');
+                        let ok = false;
+                        let msg = '';
+                        if (del.mode === 'batch') {
+                            const res = await fetch('/api/resources', {
+                                method: 'DELETE',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    items: items.map(function (i) { return { id: i.id, link: i.link }; }),
+                                }),
+                            });
+                            const data = await res.json();
+                            ok = data.success;
+                            msg = data.message || '删除成功';
+                        } else {
+                            const item = items[0];
+                            const res = await fetch('/api/resource', {
+                                method: 'DELETE',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ id: item.id, link: item.link }),
+                            });
+                            const data = await res.json();
+                            ok = data.success;
+                            msg = data.message || '';
+                        }
+                        if (ok) {
+                            toast(msg || '已删除');
+                            clearSelection();
                             resetAndFetch();
                         } else {
-                            toast(data.message || '删除失败', 'danger');
+                            toast(msg || '删除失败', 'danger');
                         }
                     } catch (e) {
                         toast('删除失败', 'danger');
                     }
                     del.open = false;
                     del.item = null;
+                    del.items = [];
+                }
+
+                /* ---------- Multi-select & batch delete ---------- */
+
+                const selectedCount = computed(function () {
+                    return Object.keys(selectedIds).length;
+                });
+
+                const boxStyle = computed(function () {
+                    if (!selectionBox.active) return {};
+                    const r = normalizedBox();
+                    return {
+                        left: r.x1 + 'px',
+                        top: r.y1 + 'px',
+                        width: (r.x2 - r.x1) + 'px',
+                        height: (r.y2 - r.y1) + 'px',
+                    };
+                });
+
+                function normalizedBox() {
+                    return {
+                        x1: Math.min(selectionBox.x1, selectionBox.x2),
+                        y1: Math.min(selectionBox.y1, selectionBox.y2),
+                        x2: Math.max(selectionBox.x1, selectionBox.x2),
+                        y2: Math.max(selectionBox.y1, selectionBox.y2),
+                    };
+                }
+
+                function isSelected(item) {
+                    return !!selectedIds[item.id];
+                }
+
+                function toggleSelect(item) {
+                    if (selectedIds[item.id]) {
+                        delete selectedIds[item.id];
+                    } else {
+                        selectedIds[item.id] = true;
+                    }
+                }
+
+                function clearSelection() {
+                    Object.keys(selectedIds).forEach(function (k) { delete selectedIds[k]; });
+                    document.querySelectorAll('.resource-card.is-selecting').forEach(function (el) {
+                        el.classList.remove('is-selecting');
+                    });
+                }
+
+                function selectAllVisible() {
+                    state.list.forEach(function (item) { selectedIds[item.id] = true; });
+                }
+
+                function onCardClick(e, item) {
+                    if (e.ctrlKey || e.metaKey || e.shiftKey) {
+                        e.preventDefault();
+                        toggleSelect(item);
+                        return;
+                    }
+                    openPreview(item, state.list.indexOf(item));
+                }
+
+                function onGridMouseDown(e) {
+                    if (e.button !== 0) return;
+                    if (e.target.closest('.resource-card') || e.target.closest('.resource-actions')) return;
+                    selectionBox.active = true;
+                    selectionBox.x1 = selectionBox.x2 = e.clientX;
+                    selectionBox.y1 = selectionBox.y2 = e.clientY;
+                }
+
+                function onGridMouseMove(e) {
+                    if (!selectionBox.active) return;
+                    selectionBox.x2 = e.clientX;
+                    selectionBox.y2 = e.clientY;
+                    highlightCardsInBox();
+                }
+
+                function onGridMouseUp(e) {
+                    if (!selectionBox.active) return;
+                    const small = Math.abs(selectionBox.x2 - selectionBox.x1) < 5 &&
+                        Math.abs(selectionBox.y2 - selectionBox.y1) < 5;
+                    selectionBox.active = false;
+                    highlightCardsInBox();
+                    if (small) {
+                        // 点击空白处：取消选择
+                        if (!e.ctrlKey && !e.metaKey) clearSelection();
+                        return;
+                    }
+                    const rect = normalizedBox();
+                    document.querySelectorAll('.resource-card').forEach(function (el) {
+                        const r = el.getBoundingClientRect();
+                        if (rect.x1 < r.right && rect.x2 > r.left && rect.y1 < r.bottom && rect.y2 > r.top) {
+                            const id = Number(el.getAttribute('data-id'));
+                            if (id) selectedIds[id] = true;
+                        }
+                    });
+                }
+
+                function highlightCardsInBox() {
+                    document.querySelectorAll('.resource-card').forEach(function (el) {
+                        el.classList.remove('is-selecting');
+                    });
+                    if (!selectionBox.active) return;
+                    const rect = normalizedBox();
+                    document.querySelectorAll('.resource-card').forEach(function (el) {
+                        const r = el.getBoundingClientRect();
+                        if (rect.x1 < r.right && rect.x2 > r.left && rect.y1 < r.bottom && rect.y2 > r.top) {
+                            el.classList.add('is-selecting');
+                        }
+                    });
                 }
 
                 /* ---------- Global drag / paste / keyboard ---------- */
@@ -534,6 +679,8 @@
                     window.addEventListener('drop', onDrop);
                     window.addEventListener('paste', onPaste);
                     window.addEventListener('keydown', onKeydown);
+                    window.addEventListener('mousemove', onGridMouseMove);
+                    window.addEventListener('mouseup', onGridMouseUp);
                     fetchList(false);
                 });
 
@@ -544,6 +691,8 @@
                     window.removeEventListener('drop', onDrop);
                     window.removeEventListener('paste', onPaste);
                     window.removeEventListener('keydown', onKeydown);
+                    window.removeEventListener('mousemove', onGridMouseMove);
+                    window.removeEventListener('mouseup', onGridMouseUp);
                 });
 
                 return {
@@ -563,6 +712,14 @@
                     formatSize: formatSize,
                     extOf: extOf,
                     resourceUrl: resourceUrl,
+                    selectedCount: selectedCount,
+                    boxStyle: boxStyle,
+                    isSelected: isSelected,
+                    onCardClick: onCardClick,
+                    onGridMouseDown: onGridMouseDown,
+                    clearSelection: clearSelection,
+                    selectAllVisible: selectAllVisible,
+                    askBatchDelete: askBatchDelete,
                     setType: setType,
                     applySearch: applySearch,
                     clearSearch: clearSearch,

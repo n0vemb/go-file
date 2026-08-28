@@ -19,6 +19,10 @@ type ResourceDeleteRequest struct {
 	Link string `json:"link"`
 }
 
+type ResourceBatchDeleteRequest struct {
+	Items []ResourceDeleteRequest `json:"items"`
+}
+
 func UploadResource(c *gin.Context) {
 	uploader := c.GetString("username")
 	if uploader == "" {
@@ -186,6 +190,42 @@ func DeleteResource(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "资源删除成功",
+	})
+}
+
+func DeleteResourcesBatch(c *gin.Context) {
+	var deleteRequest ResourceBatchDeleteRequest
+	if err := json.NewDecoder(c.Request.Body).Decode(&deleteRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "无效的参数",
+		})
+		return
+	}
+	if len(deleteRequest.Items) == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"message": "没有需要删除的资源",
+			"deleted": 0,
+		})
+		return
+	}
+	deleted := 0
+	for _, item := range deleteRequest.Items {
+		resource := &model.Resource{Id: item.Id}
+		rowsAffected := model.DB.Where("id = ?", item.Id).First(resource).RowsAffected
+		if rowsAffected == 0 {
+			continue
+		}
+		if err := resource.Delete(); err != nil {
+			continue
+		}
+		deleted++
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": fmt.Sprintf("已删除 %d 个资源", deleted),
+		"deleted": deleted,
 	})
 }
 

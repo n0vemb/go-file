@@ -69,8 +69,11 @@
         </div>
 
         <template v-else>
-            <div class="resource-grid">
-                <div class="resource-card" v-for="(item, index) in state.list" :key="item.id" @click="openPreview(item, index)">
+            <div class="resource-grid" @mousedown="onGridMouseDown">
+                <div class="selection-box" v-if="selectionBox.active" :style="boxStyle"></div>
+                <div class="resource-card" v-for="(item, index) in state.list" :key="item.id"
+                     :data-id="item.id" :class="{'is-selected': isSelected(item)}"
+                     @click="onCardClick($event, item)">
                     <div class="resource-thumb" :class="item.type + '-thumb'">
                         <span class="type-badge">${TYPE_LABELS[item.type] || '文件'}</span>
                         <img v-if="item.type === 'image'" :src="resourceUrl(item)" loading="lazy" alt=""
@@ -114,6 +117,14 @@
             <div class="load-more" v-if="state.hasNext">
                 <button class="button" :class="{'is-loading': state.loading}" @click="loadMore()">
                     加载更多（已显示 ${state.list.length} / ${state.total}）
+                </button>
+            </div>
+            <div class="batch-bar" v-if="canDelete && selectedCount > 0">
+                <span>已选 <b>${selectedCount}</b> 项</span>
+                <button class="button is-small is-light" @click="selectAllVisible()">全选当前页</button>
+                <button class="button is-small is-light" @click="clearSelection()">取消</button>
+                <button class="button is-small is-danger" @click="askBatchDelete()">
+                    <span v-html="icon('trash')"></span> 批量删除
                 </button>
             </div>
         </template>
@@ -231,7 +242,12 @@
                     <button class="modal-close" @click="del.open = false" v-html="icon('x')"></button>
                 </div>
                 <div class="modal-card-body">
-                    <p>确定要删除「<b>${del.item ? del.item.filename : ''}</b>」吗？<br/>删除后文件将被移除且无法恢复。</p>
+                    <p v-if="del.mode === 'batch'">
+                        确定要删除选中的 <b>${del.items.length}</b> 个资源吗？<br/>删除后文件将被移除且无法恢复。
+                    </p>
+                    <p v-else>
+                        确定要删除「<b>${del.item ? del.item.filename : ''}</b>」吗？<br/>删除后文件将被移除且无法恢复。
+                    </p>
                 </div>
                 <div class="modal-card-foot">
                     <button class="button is-light" @click="del.open = false">取消</button>
