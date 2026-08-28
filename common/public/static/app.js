@@ -146,6 +146,9 @@
                 const del = reactive({ open: false, item: null, items: [], mode: 'single' });
                 const selectedIds = reactive({});
                 const selectionBox = reactive({ active: false, x1: 0, y1: 0, x2: 0, y2: 0 });
+                let boxStartTarget = null;
+                let boxMoved = false;
+                let suppressClick = false;
                 const directUpload = reactive({ active: false, total: 0, progress: 0, count: 0 });
                 const dropActive = ref(false);
                 const dragDepth = ref(0);
@@ -563,6 +566,10 @@
                 }
 
                 function onCardClick(e, item) {
+                    if (suppressClick) {
+                        suppressClick = false;
+                        return;
+                    }
                     if (e.ctrlKey || e.metaKey || e.shiftKey) {
                         e.preventDefault();
                         toggleSelect(item);
@@ -573,30 +580,43 @@
 
                 function onGridMouseDown(e) {
                     if (e.button !== 0) return;
-                    if (e.target.closest('.resource-card') || e.target.closest('.resource-actions')) return;
+                    if (e.target.closest('.resource-actions')) return;
+                    boxStartTarget = e.target.closest('.resource-card');
+                    boxMoved = false;
+                    suppressClick = false;
                     selectionBox.active = true;
                     selectionBox.x1 = selectionBox.x2 = e.clientX;
                     selectionBox.y1 = selectionBox.y2 = e.clientY;
+                    document.body.classList.add('box-selecting');
                 }
 
                 function onGridMouseMove(e) {
                     if (!selectionBox.active) return;
                     selectionBox.x2 = e.clientX;
                     selectionBox.y2 = e.clientY;
-                    highlightCardsInBox();
+                    if (!boxMoved &&
+                        (Math.abs(selectionBox.x2 - selectionBox.x1) > 5 ||
+                            Math.abs(selectionBox.y2 - selectionBox.y1) > 5)) {
+                        boxMoved = true;
+                    }
+                    if (boxMoved) highlightCardsInBox();
                 }
 
                 function onGridMouseUp(e) {
                     if (!selectionBox.active) return;
-                    const small = Math.abs(selectionBox.x2 - selectionBox.x1) < 5 &&
-                        Math.abs(selectionBox.y2 - selectionBox.y1) < 5;
                     selectionBox.active = false;
                     highlightCardsInBox();
-                    if (small) {
-                        // 点击空白处：取消选择
-                        if (!e.ctrlKey && !e.metaKey) clearSelection();
+                    document.body.classList.remove('box-selecting');
+                    const moved = boxMoved;
+                    const startOnCard = !!boxStartTarget;
+                    boxStartTarget = null;
+                    if (!moved) {
+                        // 纯点击：点空白处取消选择；点卡片交给 click 处理（预览）
+                        if (!startOnCard && !e.ctrlKey && !e.metaKey) clearSelection();
                         return;
                     }
+                    // 框选完成：选中框内卡片，并抑制随后的 click（避免误开预览）
+                    suppressClick = true;
                     const rect = normalizedBox();
                     document.querySelectorAll('.resource-card').forEach(function (el) {
                         const r = el.getBoundingClientRect();

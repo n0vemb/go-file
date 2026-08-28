@@ -1433,6 +1433,17 @@ pre {
     user-select: none;
 }
 
+body.box-selecting {
+    user-select: none;
+    cursor: crosshair;
+}
+
+.select-hint {
+    color: var(--text-3);
+    font-size: 12.5px;
+    margin: 0 0 14px;
+}
+
 .resource-card {
     position: relative;
     background: var(--surface);

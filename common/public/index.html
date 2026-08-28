@@ -43,6 +43,10 @@
             </select>
         </div>
 
+        <p class="select-hint" v-if="canDelete">
+            批量操作：按住鼠标拖动可框选多个资源，Ctrl / Cmd + 点击可多选，选中后底部会出现批量删除栏
+        </p>
+
         <div v-if="state.query || state.tag" class="message is-success" style="display: flex; align-items: center; justify-content: space-between">
             <span>
                 共找到 ${state.total} 个结果
