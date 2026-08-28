@@ -15,7 +15,7 @@ _✨ 单可执行文件的局域网文件分享工具，将「文件 / 图床 / 
     <img src="https://img.shields.io/github/license/n0vemb/go-file?color=brightgreen" alt="license">
   </a>
   <a href="https://github.com/n0vemb/go-file">
-    <img src="https://img.shields.io/badge/version-v0.0.2-brightgreen" alt="version">
+    <img src="https://img.shields.io/badge/version-v0.0.3-brightgreen" alt="version">
   </a>
   <a href="#截图展示">
     <img src="https://img.shields.io/badge/UI-重构版-5b5bd6" alt="UI">
@@ -23,7 +23,7 @@ _✨ 单可执行文件的局域网文件分享工具，将「文件 / 图床 / 
 </p>
 
 > **二次开发说明**：本项目基于 [songquanpeng/go-file](https://github.com/songquanpeng/go-file) 二次开发，重构了 UI 与交互，
-> 将文件、图床、视频整合为统一的「资源库」。修改者：**n0vem**，当前版本 **v0.0.2**，
+> 将文件、图床、视频整合为统一的「资源库」。修改者：**n0vem**，当前版本 **v0.0.3**，
 > 仓库地址：[https://github.com/n0vemb/go-file](https://github.com/n0vemb/go-file)。
 > 原项目作者：JustSong（[songquanpeng/go-file](https://github.com/songquanpeng/go-file)）。
 
@@ -97,23 +97,23 @@ docker compose up -d --build
 **方式二：docker run**
 
 ```bash
-docker build -t go-file:v0.0.2 .
+docker build -t go-file:v0.0.3 .
 docker run -d --restart always \
   -p 3000:3000 \
   -e TZ=Asia/Shanghai \
   -e SESSION_SECRET=your-random-secret \
   -v /home/ubuntu/data/go-file:/data \
-  go-file:v0.0.2
+  go-file:v0.0.3
 ```
 
 **方式三：从 Docker Hub 拉取（多架构镜像由 GitHub Actions 自动构建）**
 
 ```bash
-docker pull n0vem/go-file:v0.0.2
+docker pull n0vem/go-file:v0.0.3
 docker run -d --restart always -p 3000:3000 \
   -e SESSION_SECRET=your-random-secret \
   -v /home/ubuntu/data/go-file:/data \
-  n0vem/go-file:v0.0.2
+  n0vem/go-file:v0.0.3
 ```
 
 > GitHub Actions 会在推送到 `master` 时自动构建并推送 `linux/amd64` 与 `linux/arm64` 双架构镜像。
