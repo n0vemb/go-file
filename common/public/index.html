@@ -73,7 +73,7 @@
         </div>
 
         <template v-else>
-            <div class="resource-grid" @mousedown="onGridMouseDown">
+            <div class="resource-grid" @dragstart.prevent>
                 <div class="selection-box" v-if="selectionBox.active" :style="boxStyle"></div>
                 <div class="resource-card" v-for="(item, index) in state.list" :key="item.id"
                      :data-id="item.id" :class="{'is-selected': isSelected(item)}"

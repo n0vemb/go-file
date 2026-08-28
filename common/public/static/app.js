@@ -580,7 +580,7 @@
 
                 function onGridMouseDown(e) {
                     if (e.button !== 0) return;
-                    if (e.target.closest('.resource-actions')) return;
+                    if (e.target.closest('input, textarea, select, button, a, .modal, .batch-bar, .upload-zone, .toast-container, .navbar, .theme-toggle, .icon-btn, .lightbox-nav, .pagination, .load-more')) return;
                     boxStartTarget = e.target.closest('.resource-card');
                     boxMoved = false;
                     suppressClick = false;
@@ -699,6 +699,7 @@
                     window.addEventListener('drop', onDrop);
                     window.addEventListener('paste', onPaste);
                     window.addEventListener('keydown', onKeydown);
+                    window.addEventListener('mousedown', onGridMouseDown);
                     window.addEventListener('mousemove', onGridMouseMove);
                     window.addEventListener('mouseup', onGridMouseUp);
                     fetchList(false);
@@ -711,6 +712,7 @@
                     window.removeEventListener('drop', onDrop);
                     window.removeEventListener('paste', onPaste);
                     window.removeEventListener('keydown', onKeydown);
+                    window.removeEventListener('mousedown', onGridMouseDown);
                     window.removeEventListener('mousemove', onGridMouseMove);
                     window.removeEventListener('mouseup', onGridMouseUp);
                 });
