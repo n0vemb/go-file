@@ -20,3 +20,8 @@ func GetIconFile(c *gin.Context) {
 	path := c.Param("file")
 	c.FileFromFS("public/icon/"+path, http.FS(common.FS))
 }
+
+func GetFileIconFile(c *gin.Context) {
+	path := c.Param("file")
+	c.FileFromFS("public/fileicon/"+path, http.FS(common.FS))
+}

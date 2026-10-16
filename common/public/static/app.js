@@ -38,6 +38,78 @@
         return '/resource/' + encodeURI(item.link);
     }
 
+    /* ---------- 文件类型图标：common/public/fileicon/*.svg ---------- */
+
+    const ICON_BY_EXT = {
+        // 文档
+        doc: 'doc', docx: 'doc', odt: 'doc', rtf: 'doc', pages: 'doc',
+        xls: 'xls', xlsx: 'xls', csv: 'xls', tsv: 'xls', ods: 'xls', numbers: 'xls',
+        ppt: 'ppt', pptx: 'ppt', odp: 'ppt', key: 'ppt',
+        pdf: 'pdf',
+        txt: 'txt', log: 'txt', nfo: 'txt', ini: 'txt', conf: 'txt', cfg: 'txt',
+        properties: 'txt', env: 'txt',
+        md: 'md', markdown: 'md',
+        json: 'json',
+        xml: 'xml', plist: 'xml',
+        yml: 'yml', yaml: 'yml', toml: 'yml',
+        html: 'html', htm: 'html', xhtml: 'html',
+        css: 'css', scss: 'css', sass: 'css', less: 'css', styl: 'css',
+        // 代码
+        js: 'js', mjs: 'js', cjs: 'js', ts: 'js', tsx: 'js', jsx: 'js', vue: 'js',
+        go: 'js', rs: 'js', c: 'js', h: 'js', cpp: 'js', hpp: 'js', cc: 'js',
+        rb: 'js', php: 'js', sh: 'js', bash: 'js', zsh: 'js', bat: 'js', cmd: 'js',
+        ps1: 'js', lua: 'js', pl: 'js', swift: 'js', kt: 'js', kts: 'js', scala: 'js',
+        r: 'js', dart: 'js', sql: 'sql', db: 'sql', sqlite: 'sql', sqlite3: 'sql', mdb: 'sql',
+        py: 'py', pyw: 'py', ipynb: 'py',
+        java: 'java',
+        class: 'class',
+        jar: 'jar', war: 'jar', aar: 'jar',
+        // 图片
+        jpg: 'jpg', jpeg: 'jpg', jpe: 'jpg', gif: 'jpg', webp: 'jpg', bmp: 'jpg',
+        ico: 'jpg', avif: 'jpg', tif: 'jpg', tiff: 'jpg', heic: 'jpg', heif: 'jpg',
+        raw: 'jpg', cr2: 'jpg', nef: 'jpg', arw: 'jpg',
+        png: 'png', apng: 'png',
+        svg: 'svg',
+        psd: 'svg', ai: 'svg', sketch: 'svg', fig: 'svg', xd: 'svg', eps: 'svg',
+        // 视频
+        mp4: 'mp4', m4v: 'mp4', mov: 'mp4', mkv: 'mp4', webm: 'mp4', avi: 'mp4',
+        wmv: 'mp4', flv: 'mp4', mpg: 'mp4', mpeg: 'mp4', '3gp': 'mp4', rmvb: 'mp4',
+        rm: 'mp4', vob: 'mp4', m2ts: 'mp4', ogv: 'mp4',
+        // 音频
+        mp3: 'mp3', wav: 'mp3', flac: 'mp3', aac: 'mp3', m4a: 'mp3', ogg: 'mp3',
+        oga: 'mp3', opus: 'mp3', wma: 'mp3', mid: 'mp3', midi: 'mp3', aiff: 'mp3',
+        amr: 'mp3', ape: 'mp3', wv: 'mp3',
+        // 压缩包 / 镜像 / 安装包
+        zip: 'zip', rar: 'zip', '7z': 'zip', tar: 'zip', gz: 'zip', tgz: 'zip',
+        bz2: 'zip', xz: 'zip', zst: 'zip', cab: 'zip', lz: 'zip', lzma: 'zip',
+        iso: 'iso', img: 'iso', dmg: 'iso', vhd: 'iso', vmdk: 'iso', ova: 'iso',
+        exe: 'exe', msi: 'exe', deb: 'exe', rpm: 'exe', pkg: 'exe', app: 'exe',
+        bin: 'exe', apk: 'exe', ipa: 'exe',
+    };
+
+    function fileIconName(filename, type) {
+        // 视频 / 音频按大类优先（避免 .ts 等扩展名歧义）
+        if (type === 'video') return 'mp4';
+        if (type === 'audio') return 'mp3';
+        const name = (filename || '').toLowerCase();
+        const icon = ICON_BY_EXT[extOf(filename)];
+        if (icon) return icon;
+        if (name === 'dockerfile' || name.indexOf('dockerfile.') === 0) return 'dockerfile';
+        if (name === '.gitignore' || name === 'gitignore') return 'gitignore';
+        if (name === 'makefile' || name === 'cmakelists.txt') return 'js';
+        if (name === 'license' || name === 'licence' || name === 'copying') return 'txt';
+        if (name === 'readme' || name === 'changelog') return 'md';
+        return 'file';
+    }
+
+    function fileIconUrl(item) {
+        return '/public/fileicon/' + fileIconName(item && item.filename, item && item.type) + '.svg';
+    }
+
+    function fileIconUrlByName(filename) {
+        return '/public/fileicon/' + fileIconName(filename, '') + '.svg';
+    }
+
     function icon(name) {
         return window.GFIcon ? window.GFIcon(name) : '';
     }
@@ -734,6 +806,8 @@
                     formatSize: formatSize,
                     extOf: extOf,
                     resourceUrl: resourceUrl,
+                    fileIconUrl: fileIconUrl,
+                    fileIconUrlByName: fileIconUrlByName,
                     selectionBox: selectionBox,
                     selectedCount: selectedCount,
                     boxStyle: boxStyle,

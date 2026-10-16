@@ -79,19 +79,14 @@
                      :data-id="item.id" :class="{'is-selected': isSelected(item)}"
                      @click="onCardClick($event, item)">
                     <div class="resource-thumb" :class="item.type + '-thumb'">
-                        <span class="type-badge">${TYPE_LABELS[item.type] || '文件'}</span>
+                        <span class="type-badge">
+                            <img class="badge-icon" :src="fileIconUrl(item)" alt=""/>
+                            ${TYPE_LABELS[item.type] || '文件'}
+                        </span>
                         <img v-if="item.type === 'image'" :src="resourceUrl(item)" loading="lazy" alt=""
                              @error="e => e.target.style.display = 'none'"/>
-                        <template v-else-if="item.type === 'video'">
-                            <span class="thumb-play" v-html="icon('play')"></span>
-                            <span class="type-icon" v-html="icon('video')"></span>
-                        </template>
-                        <template v-else-if="item.type === 'audio'">
-                            <span class="type-icon" v-html="icon('audio')"></span>
-                        </template>
-                        <template v-else>
-                            <span class="type-icon" v-html="icon('file')"></span>
-                        </template>
+                        <img v-else class="type-icon-img" :src="fileIconUrl(item)" alt="" loading="lazy"/>
+                        <span v-if="item.type === 'video'" class="thumb-play-chip" v-html="icon('play')"></span>
                     </div>
                     <div class="resource-body">
                         <div class="resource-name" :title="item.filename">${item.filename}</div>
@@ -152,7 +147,7 @@
                     </div>
                     <div class="upload-file-list" v-if="upload.files.length">
                         <div class="upload-file-item" v-for="(f, i) in upload.files" :key="f.name + f.size">
-                            <span class="file-icon" v-html="icon('file')"></span>
+                            <img class="file-icon-img" :src="fileIconUrlByName(f.name)" alt=""/>
                             <span class="file-name" :title="f.name">${f.name}</span>
                             <span class="file-size">${formatSize(f.size)}</span>
                             <button class="icon-btn is-danger" title="移除" @click="removeFileAt(i)" v-html="icon('x')"></button>

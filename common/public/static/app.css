@@ -1534,56 +1534,36 @@ body.box-selecting {
     transform: scale(1.05);
 }
 
-.resource-thumb .type-icon {
-    color: rgba(255, 255, 255, 0.92);
-    filter: drop-shadow(0 4px 10px rgba(23, 27, 42, 0.18));
+.resource-thumb .type-icon-img {
+    width: 62px;
+    height: 62px;
+    object-fit: contain;
+    transition: transform 0.22s ease;
 }
 
-.resource-thumb .type-icon svg {
-    width: 38px;
-    height: 38px;
+.resource-card:hover .resource-thumb .type-icon-img {
+    transform: scale(1.08);
 }
 
-.resource-thumb.video-thumb {
-    background: var(--accent-gradient);
-}
-
-.resource-thumb.audio-thumb {
-    background: linear-gradient(135deg, #2f9e6e 0%, #45b887 100%);
-}
-
-.resource-thumb.file-thumb {
-    background: linear-gradient(135deg, #3d4460 0%, #5a6278 100%);
-}
-
-.resource-thumb.image-thumb {
-    background: var(--surface-3);
-}
-
-.thumb-play {
+.thumb-play-chip {
     position: absolute;
-    width: 52px;
-    height: 52px;
+    right: 10px;
+    bottom: 10px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.22);
+    background: rgba(20, 22, 34, 0.55);
     backdrop-filter: blur(6px);
+    color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid rgba(255, 255, 255, 0.65);
-    color: #fff;
-    transition: transform 0.2s ease, background 0.2s ease;
 }
 
-.thumb-play svg {
-    width: 22px;
-    height: 22px;
-    margin-left: 3px;
-}
-
-.resource-card:hover .thumb-play {
-    transform: scale(1.1);
-    background: rgba(255, 255, 255, 0.32);
+.thumb-play-chip svg {
+    width: 12px;
+    height: 12px;
+    margin-left: 2px;
 }
 
 .type-badge {
@@ -1591,6 +1571,9 @@ body.box-selecting {
     top: 10px;
     left: 10px;
     padding: 3px 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     border-radius: 999px;
     background: rgba(20, 22, 34, 0.55);
     backdrop-filter: blur(6px);
@@ -1598,6 +1581,12 @@ body.box-selecting {
     font-size: 11.5px;
     font-weight: 600;
     letter-spacing: 0.3px;
+}
+
+.type-badge .badge-icon {
+    width: 13px;
+    height: 13px;
+    object-fit: contain;
 }
 
 .resource-body {
@@ -1839,14 +1828,10 @@ body.box-selecting {
     font-size: 13.5px;
 }
 
-.upload-file-item .file-icon {
-    color: var(--text-2);
-    display: inline-flex;
-}
-
-.upload-file-item .file-icon svg {
+.upload-file-item .file-icon-img {
     width: 18px;
     height: 18px;
+    object-fit: contain;
 }
 
 .upload-file-item .file-name {
